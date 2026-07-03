@@ -19,6 +19,9 @@ SCCO_TICKER = "SCCO"
 DEFAULT_SHARES = 773_000_000
 USER_COST = float(os.getenv("USER_COST", "184.36"))
 
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "yang-xianfeng/scco-monitor")
+PAGES_URL = f"https://{GITHUB_REPOSITORY.split('/')[0]}.github.io/{GITHUB_REPOSITORY.split('/')[1]}/"
+
 DATA_DIR = Path("data")
 DOCS_DIR = Path("docs")
 CSV_PATH = DATA_DIR / "history.csv"
@@ -83,14 +86,13 @@ def calculate_cola(data: dict) -> dict:
 
 # ── 信号判定 ──────────────────────────────────────
 def get_signal(ratio: float) -> tuple:
-    keys = "safe", "安全", "🟢 偏安全", "逢低分批买入，无需因估值砍仓"
-    if 1.10 < ratio <= 1.20:
-        keys = "watch", "合理", "🟡 合理区间", "持有观望，不盲目追高"
-    elif 1.20 < ratio < 1.50:
-        keys = "hot", "偏热", "🟠 偏热", "停止加仓，逐步降 Beta"
-    elif ratio >= 1.50:
-        keys = "danger", "减仓", "🔴 减仓区", "分批减仓，严控风险"
-    return keys
+    if ratio <= 1.10:
+        return "safe", "安全", "🟢 偏安全", "逢低分批买入，无需因估值砍仓"
+    if ratio <= 1.20:
+        return "watch", "合理", "🟡 合理区间", "持有观望，不盲目追高"
+    if ratio < 1.50:
+        return "hot", "偏热", "🟠 偏热", "停止加仓，逐步降 Beta"
+    return "danger", "减仓", "🔴 减仓区", "分批减仓，严控风险"
 
 # ── CSV 读写 ──────────────────────────────────────
 FIELDS = [
@@ -115,7 +117,8 @@ def _merge_row(existing: list[dict], new_row: dict) -> list[dict]:
 
 def append_csv(data: dict, cola: dict):
     DATA_DIR.mkdir(exist_ok=True)
-    new_row = {k: data.get(k) or cola.get(k) for k in FIELDS}
+    merged = {**data, **cola}
+    new_row = {k: str(merged[k]) for k in FIELDS}
     if not CSV_PATH.exists():
         with open(CSV_PATH, "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=FIELDS)
@@ -177,6 +180,8 @@ h1{font-size:20px;font-weight:600;color:#e8e8f0;margin-bottom:4px}
 <h1>SCCO · Cola 铜价系数监控</h1>
 <p class="sub">%s</p>
 %s
+<div id="chart"></div>
+<div class="footer">数据来源: Yahoo Finance · 每交易日更新 · <a href="%s" style="color:#555">GitHub</a></div>
 </div>
 <script>
 %s
@@ -203,9 +208,7 @@ STATUS_BAR = """<div class="card">
     <div><div class="stat-label">P 1.20</div><div class="stat-value" style="color:#eab308">$%.2f</div></div>
     <div><div class="stat-label">P 1.50</div><div class="stat-value" style="color:#ef4444">$%.2f</div></div>
   </div>
-</div>
-<div id="chart"></div>
-<div class="footer">数据来源: Yahoo Finance · 每交易日更新 · <a href="https://github.com/yang-xianfeng/scco-monitor" style="color:#555">GitHub</a></div>"""
+</div>"""
 
 CHART_SCRIPT = """const DATA = %s;
 if (DATA.length === 0) {
@@ -231,7 +234,8 @@ if (DATA.length === 0) {
 def build_html(rows: list[dict], data: dict, cola: dict):
     DOCS_DIR.mkdir(exist_ok=True)
     signal_name, tag, signal_label, advice = get_signal(cola["ratio"])
-    updated = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+    now = datetime.now()
+    updated = now.strftime("%Y-%m-%d %H:%M UTC")
 
     status_bar = STATUS_BAR % (
         signal_name, tag,
@@ -244,9 +248,11 @@ def build_html(rows: list[dict], data: dict, cola: dict):
     chart_data = json.dumps(rows, ensure_ascii=False)
     chart_script = CHART_SCRIPT % chart_data
 
+    github_url = f"https://github.com/{GITHUB_REPOSITORY}"
     html = HTML_TEMPLATE % (
         f"更新于 {updated}  ·  共 {len(rows)} 个交易日数据",
         status_bar,
+        github_url,
         chart_script,
     )
     HTML_PATH.write_text(html, encoding="utf-8")
@@ -267,6 +273,7 @@ def push_notification(text: str):
 
 # ── 主入口 ────────────────────────────────────────
 def main():
+    now = datetime.now()
     print("=== SCCO Monitor ===")
 
     data = fetch_market_data()
@@ -282,14 +289,15 @@ def main():
     build_html(rows, data, cola)
     print(f"  HTML generated ({len(rows)} rows)")
 
-    signal_name, tag, signal_label, advice = get_signal(cola["ratio"])
+    _, _, signal_label, advice = get_signal(cola["ratio"])
     pl_pct = (data["scco_close"] - USER_COST) / USER_COST * 100
 
     report = (
-        f"【SCCO Monitor】{datetime.now().strftime('%m-%d %H:%M')}\n"
+        f"【SCCO Monitor】{now.strftime('%m-%d %H:%M')}\n"
         f"铜价 ${data['copper']}  |  SCCO ${data['scco_close']} ({pl_pct:+.1f}%)\n"
         f"系数 {cola['ratio']}  |  {signal_label}\n"
-        f"{advice}"
+        f"{advice}\n"
+        f"📊 {PAGES_URL}"
     )
     print(report)
     push_notification(report)

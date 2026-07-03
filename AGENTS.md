@@ -19,25 +19,29 @@ pip install pytest pytest-mock && python -m pytest tests/ -v
 ## Structure
 
 ```
-main.py              # the whole program (~280 lines)
+main.py              # the whole program (~300 lines)
 data/history.csv     # daily OHLCV + Cola coefficient (upsert by date)
 docs/index.html      # Plotly candlestick chart (regenerated each run)
+docs/.nojekyll       # must exist — disables Jekyll on Pages
 tests/test_main.py   # 39 tests: calc, CSV, HTML, data, notify
 .github/workflows/run.yml
 ```
 
 ## Key facts
 
-- **Only dependency:** `yfinance` + `requests`. Everything else is stdlib.
+- **Dependencies:** `yfinance`, `requests`, `pandas`. Everything else is stdlib.
 - **Configuration:** environment variables only — `USER_COST`, `FEISHU_WEBHOOK`,
   `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`. Notifications are optional.
 - **No database, no server, no framework.** CSV is the data store.
 - **CSV upsert:** same‑date rows overwrite (not duplicate), re‑read sorts by date.
 - **GitHub Actions:** `schedule` + `workflow_dispatch`. Two runs per weekday
   (open / close US equity). Uses `stefanzweifel/git-auto-commit-action` to
-  commit `data/` and `docs/` changes back.
+  commit `data/` and `docs/` changes back, then `actions/deploy-pages` to
+  deploy to GitHub Pages.
+- **Pages source must be "GitHub Actions"** (not "Deploy from a branch").
+  The workflow handles both committing and deploying.
 - **No test runner config** — just `pytest` directly. No lint/typecheck yet.
-- **GitHub Pages:** serve `/docs` from `main` branch for the chart.
+- **GitHub Pages:** serves `docs/` content via Actions artifact deployment.
 
 ## Signal logic
 

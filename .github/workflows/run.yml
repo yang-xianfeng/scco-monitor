@@ -2,15 +2,25 @@ name: SCCO Monitor
 
 on:
   schedule:
-    # 美东 10:00 = UTC 14:00 (开盘后)
-    # 美东 16:30 = UTC 20:30 (收盘后)
     - cron: '0 14 * * 1-5'
     - cron: '30 20 * * 1-5'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  run:
+  deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,3 +44,15 @@ jobs:
         with:
           commit_message: "auto: update data & chart"
           file_pattern: data/ docs/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
