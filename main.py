@@ -17,7 +17,7 @@ import yfinance as yf
 COPPER_TICKER = "HG=F"
 SCCO_TICKER = "SCCO"
 DEFAULT_SHARES = 773_000_000
-USER_COST = float(os.getenv("USER_COST", "184.36"))
+USER_COST = float(os.getenv("USER_COST") or "184.36")
 
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "yang-xianfeng/scco-monitor")
 PAGES_URL = f"https://{GITHUB_REPOSITORY.split('/')[0]}.github.io/{GITHUB_REPOSITORY.split('/')[1]}/"
