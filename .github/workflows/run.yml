@@ -1,0 +1,36 @@
+name: SCCO Monitor
+
+on:
+  schedule:
+    # 美东 10:00 = UTC 14:00 (开盘后)
+    # 美东 16:30 = UTC 20:30 (收盘后)
+    - cron: '0 14 * * 1-5'
+    - cron: '30 20 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - run: python main.py
+        env:
+          USER_COST: ${{ vars.USER_COST }}
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "auto: update data & chart"
+          file_pattern: data/ docs/
