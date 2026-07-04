@@ -7,7 +7,7 @@ on:
       - 'data/**'
       - 'docs/**'
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/15 13-20 * * 1-5'
   workflow_dispatch:
 
 permissions:
@@ -16,7 +16,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages-${{ github.ref }}"
+  group: pages
   cancel-in-progress: false
 
 jobs:
@@ -30,32 +30,32 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: pip
 
       - run: pip install -r requirements.txt
 
-      - run: python main.py
+      - name: Run monitor
+        run: python main.py
         env:
-          SCHEDULE_INTERVAL_MINUTES: 15
-          DAYS_HISTORICAL: 60
-          INTRADAY_INTERVAL: 15m
-          INTRADAY_PERIOD: 5d
+          THRESHOLD_SAFE: ${{ vars.THRESHOLD_SAFE }}
+          THRESHOLD_WATCH: ${{ vars.THRESHOLD_WATCH }}
+          THRESHOLD_HOT: ${{ vars.THRESHOLD_HOT }}
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
       - name: Setup Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v4
 
       - name: Commit data back to repo
         if: success()
