@@ -16,7 +16,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
 .header h1 span{color:var(--sec);font-weight:400}
 .header-meta{font-size:10px;color:var(--muted);margin-top:2px}
 .stats{display:flex;gap:16px;margin-bottom:14px}
-.stat{flex:1;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px}
+.stat{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px}
+.stat .l{margin-bottom:2px}
 .stat .l{font-size:11px;font-weight:600;color:var(--sec);text-transform:uppercase;letter-spacing:.3px}
 .stat .v{font-size:16px;font-weight:700}
 .stat .v.safe{color:var(--safe)}
@@ -30,8 +31,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
 .tag.danger{background:rgba(239,83,80,.15);color:var(--danger);border:1px solid rgba(239,83,80,.3)}
 .chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;margin-bottom:14px}
 .chart-wrap .title{font-size:11px;font-weight:600;color:var(--sec);padding:5px 10px 0;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.chart-wrap .title .badge{font-size:11px;font-weight:600;color:var(--muted);font-family:Consolas,monospace;letter-spacing:.5px}
-.chart-wrap .title .badge::before{content:"📅 ";font-size:9px}
+.chart-wrap .title .badge{font-size:14px;font-weight:600;color:var(--muted);font-family:Consolas,monospace;letter-spacing:.5px}
+.chart-wrap .title .badge::before{content:"📅 ";font-size:12px}
 #chart{height:360px}
 #history-chart{height:400px}
 .footer{border-top:1px solid var(--border);padding:12px 0;display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
@@ -63,7 +64,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
     <span class="v">$%(scco_close).2f</span>
   </div>
   <div class="stat">
-    <span class="l" style="color:#26a69a">Corr</span>
+    <span class="l" style="color:#26a69a">系数</span>
     <span class="v %(sig_key)s">%(ratio).4f</span>
     <span class="tag %(sig_key)s">%(sig_tag)s</span>
   </div>
