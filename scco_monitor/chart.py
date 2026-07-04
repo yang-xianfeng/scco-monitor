@@ -166,8 +166,9 @@ def build_history_chart_json(daily: list[dict]) -> str:
 def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_ratio: dict) -> None:
     """生成完整 HTML.
     
-    日期规则: 必须用 cur_data["date"] (当前 fetch 从 yfinance 索引获取),
-    不可用 daily[-1]["date"] (CSV 可能有陈旧条目).
+    日期规则: 优先用 intraday[-1]["datetime"] (日内数据来源日期,
+    反映实际交易日), 次选 cur_data["date"] (当前 fetch 从 yfinance
+    索引获取), 不可用 daily[-1]["date"] (CSV 可能有陈旧条目).
     """
     from .config import DOCS_DIR, HTML_PATH
     Path(DOCS_DIR).mkdir(parents=True, exist_ok=True)
@@ -178,7 +179,14 @@ def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_rati
     chart_json = build_chart_json(intraday, cur_data, cur_ratio)
     history_chart_json = build_history_chart_json(daily)
 
-    trade_date = cur_data.get("date") or (daily[-1]["date"] if daily else now.strftime("%Y-%m-%d"))
+    if intraday:
+        trade_date = intraday[-1]["datetime"][:10]
+    elif cur_data.get("date"):
+        trade_date = cur_data["date"]
+    elif daily:
+        trade_date = daily[-1]["date"]
+    else:
+        trade_date = now.strftime("%Y-%m-%d")
     trade_date_compact = trade_date.replace("-", "")
 
     template = _load_template()
