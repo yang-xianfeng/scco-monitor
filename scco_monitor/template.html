@@ -6,40 +6,50 @@
 <title>SCCO Monitor · Correlation</title>
 <script src="https://cdn.plot.ly/plotly-%(plotly_version)s.min.js"></script>
 <style>
-:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--sec:#8b949e;--muted:#484f58;--safe:#26a69a;--watch:#ffa726;--hot:#ff7043;--danger:#ef5350;--accent:#58a6ff;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--sec:#8b949e;--muted:#484f58;--safe:#26a69a;--watch:#ffa726;--hot:#ff7043;--danger:#ef5350;--cu:#ffa726;--scco:#58a6ff;--corr:#26a69a;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
 html{font-size:14px}
 body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5}
-.container{max-width:1200px;margin:0 auto;padding:20px 16px}
-.header{text-align:center;padding:0 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px}
-.header h1{font-size:16px;font-weight:600;letter-spacing:.3px}
+.container{max-width:1200px;margin:0 auto;padding:28px 20px}
+
+.header{display:flex;justify-content:space-between;align-items:baseline;padding:0 0 16px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.header h1{font-size:18px;font-weight:600;letter-spacing:.3px}
 .header h1 span{color:var(--sec);font-weight:400}
-.header-meta{font-size:10px;color:var(--muted);margin-top:2px}
-.stats{display:flex;gap:16px;margin-bottom:14px}
-.stat{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px 14px}
-.stat .l{font-size:15px;font-weight:600;color:var(--sec);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
-.stat .v{font-size:20px;font-weight:700}
+.header-meta{font-size:11px;color:var(--muted)}
+
+.stats{display:flex;gap:16px;margin-bottom:24px}
+.stat{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px 16px}
+.stat .l{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--sec)}
+.stat--cu .l{color:var(--cu)}
+.stat--scco .l{color:var(--scco)}
+.stat--corr .l{color:var(--corr)}
+.stat .v{font-size:22px;font-weight:700}
 .stat .v.safe{color:var(--safe)}
 .stat .v.watch{color:var(--watch)}
 .stat .v.hot{color:var(--hot)}
 .stat .v.danger{color:var(--danger)}
-.tag{display:inline-block;padding:2px 10px;border-radius:3px;font-size:13px;font-weight:600;margin-left:6px}
-.tag.safe{background:rgba(38,166,154,.15);color:var(--safe);border:1px solid rgba(38,166,154,.3)}
-.tag.watch{background:rgba(255,167,38,.15);color:var(--watch);border:1px solid rgba(255,167,38,.3)}
-.tag.hot{background:rgba(255,112,67,.15);color:var(--hot);border:1px solid rgba(255,112,67,.3)}
-.tag.danger{background:rgba(239,83,80,.15);color:var(--danger);border:1px solid rgba(239,83,80,.3)}
-.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;margin-bottom:14px}
-.chart-wrap .title{font-size:11px;font-weight:600;color:var(--sec);padding:5px 10px 0;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.chart-wrap .title .badge{font-size:14px;font-weight:600;color:var(--muted);font-family:Consolas,monospace;letter-spacing:.5px}
-.chart-wrap .title .badge::before{content:"📅 ";font-size:12px}
+.tag{display:inline-block;padding:3px 12px;border-radius:4px;font-size:12px;font-weight:600}
+.tag.safe{background:rgba(38,166,154,.12);color:var(--safe);border:1px solid rgba(38,166,154,.25)}
+.tag.watch{background:rgba(255,167,38,.12);color:var(--watch);border:1px solid rgba(255,167,38,.25)}
+.tag.hot{background:rgba(255,112,67,.12);color:var(--hot);border:1px solid rgba(255,112,67,.25)}
+.tag.danger{background:rgba(239,83,80,.12);color:var(--danger);border:1px solid rgba(239,83,80,.25)}
+
+.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:24px}
+.chart-wrap .title{font-size:12px;font-weight:600;color:var(--sec);padding:8px 12px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);margin-bottom:6px}
+.chart-wrap .title .badge{font-size:13px;font-weight:600;color:var(--text);font-family:Consolas,monospace;letter-spacing:.3px}
+.chart-wrap .title .badge::before{content:"> ";font-size:12px;color:var(--muted)}
 
 #chart{height:360px}
 #history-chart{height:400px}
-@media(max-width:768px){
-  .stats{flex-wrap:wrap;gap:8px}
-  .stat{padding:16px 10px}
-  .stat .l{font-size:13px}
-  .stat .v{font-size:17px}
+@media(max-width:640px){
+  .container{padding:20px 14px}
+  .header h1{font-size:16px}
+  .stats{flex-wrap:wrap;gap:8px;margin-bottom:20px}
+  .stat{flex:1 1 calc(50%% - 4px);padding:18px 12px}
+  .stat:last-child{flex:1 1 100%%}
+  .stat .l{font-size:10px}
+  .stat .v{font-size:18px}
+  .chart-wrap{margin-bottom:20px}
   #chart{height:300px}#history-chart{height:340px}
 }
 </style>
@@ -53,16 +63,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
 </header>
 
 <div class="stats">
-  <div class="stat">
-    <span class="l" style="color:#ffa726">Cu</span>
+  <div class="stat stat--cu">
+    <span class="l">Cu</span>
     <span class="v">$%(copper).4f</span>
   </div>
-  <div class="stat">
-    <span class="l" style="color:#58a6ff">SCCO</span>
+  <div class="stat stat--scco">
+    <span class="l">SCCO</span>
     <span class="v">$%(scco_close).2f</span>
   </div>
-  <div class="stat">
-    <span class="l" style="color:#26a69a">Corr</span>
+  <div class="stat stat--corr">
+    <span class="l">Corr</span>
     <span class="v %(sig_key)s">%(ratio).4f</span>
     <span class="tag %(sig_key)s">%(sig_tag)s</span>
   </div>
