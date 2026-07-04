@@ -57,8 +57,8 @@ def fetch_intraday_data() -> list[dict]:
         return []
 
     copper_ref = round(float(copper["Close"].iloc[-1]), 4) if not copper.empty else 0.0
-    today = pd.Timestamp(datetime.now().strftime("%Y-%m-%d"), tz=scco.index.tz)
-    scco_today = scco[scco.index.date == today.date()]
+    last_date = scco.index[-1].date()
+    scco_today = scco[scco.index.date == last_date]
 
     rows = []
     for idx, row in scco_today.iterrows():
