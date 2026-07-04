@@ -88,7 +88,7 @@ def fetch_market_data() -> dict:
     shares = scco.info.get("sharesOutstanding") or DEFAULT_SHARES
 
     return {
-        "date": datetime.now().strftime("%Y-%m-%d"),
+        "date": copper_hist.index[-1].strftime("%Y-%m-%d"),
         "copper": round(float(copper_hist["Close"].iloc[-1]), 4),
         "scco_open": round(float(scco_hist["Open"].iloc[-1]), 2),
         "scco_high": round(float(scco_hist["High"].iloc[-1]), 2),

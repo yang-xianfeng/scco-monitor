@@ -177,12 +177,14 @@ class TestFetch:
     def test_ok(self, mock_t):
         mc, ms = MagicMock(), MagicMock()
         mock_t.side_effect = lambda t: mc if t == "HG=F" else ms
-        mc.history.return_value = pd.DataFrame({"Close": [6.229]})
+        idx = pd.DatetimeIndex(["2026-07-02"])
+        mc.history.return_value = pd.DataFrame({"Close": [6.229]}, index=idx)
         ms.history.return_value = pd.DataFrame({"Open": [171], "High": [175], "Low": [169],
-                                                  "Close": [172], "Volume": [1_000_000]})
+                                                  "Close": [172], "Volume": [1_000_000]}, index=idx)
         ms.info = {"sharesOutstanding": 773_000_000}
         r = fetch_market_data()
         assert r["copper"] == 6.229 and r["scco_close"] == 172.0
+        assert r["date"] == "2026-07-02"
 
     @patch("scco_monitor.fetcher.yf.Ticker")
     def test_empty(self, mock_t):
@@ -194,8 +196,9 @@ class TestFetch:
     def test_fallback_shares(self, mock_t):
         mc, ms = MagicMock(), MagicMock()
         mock_t.side_effect = lambda t: mc if t == "HG=F" else ms
-        mc.history.return_value = pd.DataFrame({"Close": [6.0]})
+        idx = pd.DatetimeIndex(["2026-07-02"])
+        mc.history.return_value = pd.DataFrame({"Close": [6.0]}, index=idx)
         ms.history.return_value = pd.DataFrame({"Open": [100], "High": [101], "Low": [99],
-                                                  "Close": [100], "Volume": [1000]})
+                                                  "Close": [100], "Volume": [1000]}, index=idx)
         ms.info = {}
         assert fetch_market_data()["shares"] == 773_000_000

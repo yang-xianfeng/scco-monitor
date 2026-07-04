@@ -174,15 +174,10 @@ def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_rati
     chart_json = build_chart_json(intraday, cur_data, cur_ratio)
     history_chart_json = build_history_chart_json(daily)
 
-    trade_date = daily[-1]["date"] if daily else None
-    trade_date_compact = trade_date.replace("-", "") if trade_date else "---"
+    trade_date = daily[-1]["date"] if daily else now.strftime("%Y-%m-%d")
+    trade_date_compact = trade_date.replace("-", "")
     today_compact = now.strftime("%Y%m%d")
-    non_trading = ""
-    if trade_date is None:
-        if now.weekday() >= 5:
-            non_trading = '<span class="nt">(非交易日)</span>'
-    elif trade_date_compact != today_compact:
-        non_trading = '<span class="nt">(非交易日)</span>'
+    non_trading = '<span class="nt">(非交易日)</span>' if trade_date_compact != today_compact else ""
 
     template = _load_template()
     html = template % {
