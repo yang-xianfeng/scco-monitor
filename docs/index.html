@@ -15,48 +15,30 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
 .header h1{font-size:18px;font-weight:600}
 .header h1 span{color:var(--sec);font-weight:400}
 .header-meta{text-align:right;font-size:11px;color:var(--sec)}
-.signal-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;position:relative;overflow:hidden}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.card.safe::before{background:var(--safe)}
-.card.watch::before{background:var(--watch)}
-.card.hot::before{background:var(--hot)}
-.card.danger::before{background:var(--danger)}
-.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.stat-value{font-size:28px;font-weight:700;line-height:1.2}
+.stat-value.safe{color:var(--safe)}
+.stat-value.watch{color:var(--watch)}
+.stat-value.hot{color:var(--hot)}
+.stat-value.danger{color:var(--danger)}
+.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;margin-top:6px}
 .tag.safe{background:rgba(38,166,154,.15);color:var(--safe);border:1px solid rgba(38,166,154,.3)}
 .tag.watch{background:rgba(255,167,38,.15);color:var(--watch);border:1px solid rgba(255,167,38,.3)}
 .tag.hot{background:rgba(255,112,67,.15);color:var(--hot);border:1px solid rgba(255,112,67,.3)}
 .tag.danger{background:rgba(239,83,80,.15);color:var(--danger);border:1px solid rgba(239,83,80,.3)}
-.signal-label{font-size:15px;font-weight:600;margin:6px 0 0}
-.coef-wrap{text-align:right}
-.coef-wrap .label{font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.5px}
-.coef-wrap .value{font-size:34px;font-weight:700;line-height:1.1}
-.coef-wrap .value.safe{color:var(--safe)}
-.coef-wrap .value.watch{color:var(--watch)}
-.coef-wrap .value.hot{color:var(--hot)}
-.coef-wrap .value.danger{color:var(--danger)}
-.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
-.metrics .item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
-.metrics .item .l{font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.5px}
-.metrics .item .v{font-size:16px;font-weight:600;margin-top:2px}
-.metrics .item .v.green{color:var(--safe)}
-.metrics .item .v.yellow{color:var(--watch)}
-.metrics .item .v.red{color:var(--danger)}
 .chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;margin-bottom:14px}
 .chart-wrap .title{font-size:12px;font-weight:600;color:var(--sec);padding:6px 10px 0}
-#chart{height:480px}
-.bt-section{margin-bottom:14px}
-.bt-section h3{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--sec)}
-.bt-summary{font-size:11px;color:var(--muted);margin-bottom:8px}
-#bt-chart{height:180px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px}
+#chart{height:360px}
+#history-chart{height:400px}
 .footer{border-top:1px solid var(--border);padding:12px 0;display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
 .footer a{color:var(--sec);text-decoration:none}
 .footer a:hover{color:var(--accent)}
 @media(max-width:768px){
-  .signal-row{grid-template-columns:1fr}
-  .metrics{grid-template-columns:repeat(3,1fr)}
-  #chart{height:340px}#bt-chart{height:140px}
+  .stats-row{grid-template-columns:1fr}
   .header{flex-direction:column;align-items:flex-start;gap:6px}
+  #chart{height:300px}#history-chart{height:340px}
 }
 </style>
 </head>
@@ -65,41 +47,33 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
 
 <header class="header">
   <div><h1>SCCO <span>· 相关性系数</span></h1></div>
-  <div class="header-meta">2026-07-04 02:05 UTC<br>共 1 个交易日</div>
+  <div class="header-meta">2026-07-04 02:23 UTC</div>
 </header>
 
-<div class="signal-row">
-  <div class="card safe">
-    <span class="tag safe">安全</span>
-    <div class="signal-label">相关性系数处于 <strong>安全</strong> 区间</div>
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">铜价</div>
+    <div class="stat-value">$6.2240</div>
   </div>
-  <div class="card" style="cursor:default">
-    <div class="coef-wrap">
-      <div class="label">相关性系数</div>
-      <div class="value safe">1.0760</div>
-    </div>
+  <div class="stat-card">
+    <div class="stat-label">SCCO 股价</div>
+    <div class="stat-value">$172.01</div>
   </div>
-</div>
-
-<div class="metrics">
-  <div class="item"><div class="l">铜期货</div><div class="v">$6.2240</div></div>
-  <div class="item"><div class="l">SCCO</div><div class="v">$172.01</div></div>
-  <div class="item"><div class="l">安全上沿</div><div class="v green">$172.64</div></div>
-  <div class="item"><div class="l">关注上沿</div><div class="v yellow">$188.63</div></div>
-  <div class="item"><div class="l">偏热上沿</div><div class="v red">$204.61</div></div>
+  <div class="stat-card">
+    <div class="stat-label">相关性系数</div>
+    <div class="stat-value safe">1.0760</div>
+    <div class="tag safe">安全</div>
+  </div>
 </div>
 
 <div class="chart-wrap">
-  <div class="title">价格走势 · 日线 + 日内 15min</div>
+  <div class="title">日内走势 · 15min</div>
   <div id="chart"></div>
 </div>
 
-<div class="bt-section">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <h3>系数区间历史</h3>
-    <span class="bt-summary">0 次区间切换 · 0 个交易日</span>
-  </div>
-  <div id="bt-chart"></div>
+<div class="chart-wrap">
+  <div class="title">历史走势 · 60 日</div>
+  <div id="history-chart"></div>
 </div>
 
 <footer class="footer">
@@ -110,16 +84,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
 </div>
 
 <script>
-(function(){var c={"data": [{"type": "candlestick", "x": ["2026-07-04T16:00:00"], "open": [171.0], "high": [175.89], "low": [169.14], "close": [172.01], "name": "SCCO", "increasing": {"line": {"color": "#26a69a"}, "fillcolor": "#26a69a"}, "decreasing": {"line": {"color": "#ef5350"}, "fillcolor": "#ef5350"}}, {"type": "bar", "x": ["2026-07-04T16:00:00"], "y": [1454.5], "name": "成交量 (千股)", "yaxis": "y2", "marker": {"color": [1454.5], "colorscale": [[0, "#1a237e"], [1, "#26a69a"]], "showscale": false}, "opacity": 0.4}, {"type": "scatter", "x": ["2026-07-04T16:00:00"], "y": [186.34], "name": "P<sub>1.08</sub> 安全", "line": {"color": "#26a69a", "dash": "dash", "width": 1}}, {"type": "scatter", "x": ["2026-07-04T16:00:00"], "y": [203.59], "name": "P<sub>1.18</sub> 关注", "line": {"color": "#ffa726", "dash": "dash", "width": 1}}, {"type": "scatter", "x": ["2026-07-04T16:00:00"], "y": [220.85], "name": "P<sub>1.28</sub> 偏热", "line": {"color": "#ef5350", "dash": "dash", "width": 1}}], "layout": {"paper_bgcolor": "#0d1117", "plot_bgcolor": "#0d1117", "font": {"color": "#c9d1d9", "family": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif", "size": 11}, "margin": {"l": 48, "r": 24, "t": 32, "b": 48}, "xaxis": {"domain": [0, 1], "gridcolor": "#21262d", "zerolinecolor": "#21262d", "type": "date", "rangeslider": {"visible": false}}, "yaxis": {"domain": [0.25, 1], "gridcolor": "#21262d", "zerolinecolor": "#21262d", "title": "价格 (USD)", "side": "right"}, "yaxis2": {"domain": [0, 0.2], "gridcolor": "#21262d", "zerolinecolor": "#21262d", "title": "成交量", "side": "right"}, "legend": {"orientation": "h", "y": 1.02, "x": 0, "font": {"size": 10}, "bgcolor": "rgba(0,0,0,0)"}, "hovermode": "x unified", "dragmode": "zoom"}, "config": {"responsive": true, "displayModeBar": false, "scrollZoom": true}};if(!c||!c.data||!c.data[0]||!c.data[0].x.length){
-  document.getElementById('chart').innerHTML='<div style="text-align:center;padding:80px 20px;color:var(--muted)"><p>暂无数据</p></div>';return}
+(function(){var c={"data": [], "layout": {}, "config": {"responsive": true}};if(!c||!c.data||!c.data[0]||!c.data[0].x||!c.data[0].x.length){
+  document.getElementById('chart').innerHTML='<div style="text-align:center;padding:80px 20px;color:var(--muted)"><p>暂无日内数据</p></div>';return}
   Plotly.react('chart',c.data,c.layout,c.config)})();
 
-(function(){var c=null;if(!c||c==='null'){
-  document.getElementById('bt-chart').innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--muted)"><p>数据不足</p></div>';return}
-  Plotly.react('bt-chart',c.data,c.layout,c.config)})();
+(function(){var c={"data": [{"type": "scatter", "x": ["2026-04-09", "2026-04-10", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-01", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-04"], "y": [5.748, 5.8705, 5.976, 6.0705, 6.072, 6.0665, 6.1035, 6.036, 6.0015, 6.12, 6.0755, 6.0235, 6.018, 5.9145, 5.8785, 5.926, 5.932, 5.795, 5.943, 6.1365, 6.1275, 6.249, 6.4135, 6.485, 6.6355, 6.5675, 6.2515, 6.272, 6.165, 6.2905, 6.257, 6.342, 6.361, 6.305, 6.396, 6.3595, 6.524, 6.6495, 6.481, 6.511, 6.2635, 6.3295, 6.3025, 6.249, 6.259, 6.4305, 6.4825, 6.489, 6.4815, 6.3745, 6.3565, 6.141, 5.943, 6.0705, 6.1415, 6.0975, 6.1925, 6.1235, 6.1145, 6.224], "name": "铜价", "mode": "lines", "line": {"color": "#ffa726", "width": 2}, "yaxis": "y", "xaxis": "x", "hovertemplate": "%{x}<br>铜价: $%{y:.4f}<extra></extra>"}, {"type": "scatter", "x": ["2026-04-09", "2026-04-10", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-01", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-04"], "y": [185.22, 189.66, 193.42, 190.46, 186.45, 185.41, 191.39, 187.89, 180.77, 184.88, 179.5, 177.71, 175.44, 167.92, 165.89, 169.1, 168.6, 163.79, 168.45, 181.14, 176.84, 182.5, 182.44, 188.86, 191.89, 188.5, 176.78, 171.9, 169.0, 174.09, 179.12, 179.67, 189.88, 187.75, 194.88, 191.3, 194.62, 201.37, 196.59, 194.09, 172.97, 170.48, 175.17, 167.76, 182.16, 189.79, 193.22, 194.53, 191.68, 192.93, 189.91, 178.57, 171.84, 174.73, 171.26, 168.45, 174.26, 168.8, 172.01, 172.01], "name": "SCCO 股价", "mode": "lines", "line": {"color": "#58a6ff", "width": 2}, "yaxis": "y2", "xaxis": "x2", "hovertemplate": "%{x}<br>SCCO: $%{y:.2f}<extra></extra>"}, {"type": "scatter", "x": ["2026-04-09", "2026-04-10", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-01", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-04"], "y": [1.2546, 1.2579, 1.2602, 1.2216, 1.1956, 1.19, 1.2209, 1.212, 1.1728, 1.1762, 1.1503, 1.1487, 1.1351, 1.1054, 1.0987, 1.111, 1.1066, 1.1005, 1.1036, 1.1493, 1.1237, 1.1371, 1.1076, 1.1339, 1.126, 1.1175, 1.101, 1.0671, 1.0673, 1.0775, 1.1146, 1.103, 1.1622, 1.1594, 1.1863, 1.1712, 1.1615, 1.1791, 1.181, 1.1606, 1.0752, 1.0487, 1.0822, 1.0453, 1.1332, 1.1491, 1.1605, 1.1672, 1.1515, 1.1784, 1.1633, 1.1322, 1.1258, 1.1207, 1.0857, 1.0756, 1.0957, 1.0733, 1.0953, 1.076], "name": "相关性系数", "mode": "lines", "line": {"color": "#26a69a", "width": 2}, "yaxis": "y3", "xaxis": "x3", "hovertemplate": "%{x}<br>系数: %{y:.4f}<extra></extra>"}], "layout": {"paper_bgcolor": "#0d1117", "plot_bgcolor": "#0d1117", "font": {"color": "#c9d1d9", "family": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif", "size": 11}, "margin": {"l": 56, "r": 24, "t": 12, "b": 48}, "grid": {"rows": 3, "columns": 1, "pattern": "independent"}, "xaxis": {"showticklabels": false, "gridcolor": "#21262d", "zerolinecolor": "#21262d", "type": "date"}, "xaxis2": {"matches": "x", "showticklabels": false, "gridcolor": "#21262d", "zerolinecolor": "#21262d"}, "xaxis3": {"matches": "x", "gridcolor": "#21262d", "zerolinecolor": "#21262d", "type": "date"}, "yaxis": {"title": "铜价 (USD)", "side": "right", "gridcolor": "#21262d", "zerolinecolor": "#21262d"}, "yaxis2": {"title": "SCCO (USD)", "side": "right", "gridcolor": "#21262d", "zerolinecolor": "#21262d"}, "yaxis3": {"title": "系数", "side": "right", "gridcolor": "#21262d", "zerolinecolor": "#21262d"}, "legend": {"orientation": "h", "y": 1.02, "x": 0, "font": {"size": 10}, "bgcolor": "rgba(0,0,0,0)"}, "hovermode": "x unified"}, "config": {"responsive": true, "displayModeBar": false}};if(!c||c==='null'){
+  document.getElementById('history-chart').innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted)"><p>历史数据不足</p></div>';return}
+  Plotly.react('history-chart',c.data,c.layout,c.config)})();
 
 window.addEventListener('resize',function(){
-  ['chart','bt-chart'].forEach(function(id){
+  ['chart','history-chart'].forEach(function(id){
     var el=document.getElementById(id);if(el&&el.layout)Plotly.Plots.resize(el)})});
 </script>
 </body>
