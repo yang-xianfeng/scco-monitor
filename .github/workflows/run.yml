@@ -7,7 +7,10 @@ on:
       - 'data/**'
       - 'docs/**'
   schedule:
-    - cron: '*/15 13-20 * * 1-5'
+    # 夏令时 (EDT=UTC-4) 覆盖 13:30-20:00 · 冬令时 (EST=UTC-5) 覆盖 14:30-21:00
+    - cron: '*/5 13-14 * * 1-5'    # 开盘密集（前 2h 每 5min）
+    - cron: '*/15 15-19 * * 1-5'   # 盘中常规（每 15min）
+    - cron: '*/5 20 * * 1-5'       # 收盘密集（最后 1h 每 5min）
   workflow_dispatch:
 
 permissions:

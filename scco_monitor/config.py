@@ -63,5 +63,4 @@ PLOTLY_VERSION = os.getenv("PLOTLY_VERSION", "2.27.0")
 INTRADAY_INTERVAL = os.getenv("INTRADAY_INTERVAL", "15m")
 INTRADAY_PERIOD = os.getenv("INTRADAY_PERIOD", "5d")
 
-# ── 调度 ─────────────────────────────────────────
-SCHEDULE_INTERVAL_MINUTES = _env_int("SCHEDULE_INTERVAL_MINUTES", 15)
+# ── 调度 (cron 见 .github/workflows/run.yml) ──────
