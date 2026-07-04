@@ -96,9 +96,9 @@ def build_chart_json(intraday, cur_data, cur_ratio) -> str:
                    "title": {"text": "量", "font": {"color": "#c9d1d9"}}, "side": "right", "automargin": True},
         "legend": {"orientation": "h", "y": 1.02, "x": 0, "font": {"size": 10},
                    "bgcolor": "rgba(0,0,0,0)"},
-        "hovermode": "x unified", "dragmode": "zoom",
+        "hovermode": "x unified",
     }
-    return json.dumps({"data": data, "layout": layout, "config": {"responsive": True, "displayModeBar": False, "scrollZoom": True}},
+    return json.dumps({"data": data, "layout": layout, "config": {"responsive": True, "displayModeBar": False, "scrollZoom": False}},
                        ensure_ascii=False, default=str)
 
 
