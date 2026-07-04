@@ -60,7 +60,7 @@ def build_chart_json(intraday: list[dict], cur_data: dict, cur_ratio: dict) -> s
         high.append(float(r["scco_high"]))
         low.append(float(r["scco_low"]))
         close.append(float(r["scco_close"]))
-        vol.append(float(r["scco_volume"]) / 1_000)
+        vol.append(float(r["scco_volume"]))
 
     ref_copper = float(intraday[0].get("copper_ref", cur_data.get("copper", 0)))
     shares = float(cur_data.get("shares", DEFAULT_SHARES) or DEFAULT_SHARES)
@@ -71,7 +71,7 @@ def build_chart_json(intraday: list[dict], cur_data: dict, cur_ratio: dict) -> s
          "close": close, "name": "SCCO",
          "increasing": {"line": {"color": "#26a69a"}, "fillcolor": "#26a69a"},
          "decreasing": {"line": {"color": "#ef5350"}, "fillcolor": "#ef5350"}},
-        {"type": "bar", "x": dates, "y": vol, "name": "成交量 (千股)", "yaxis": "y2",
+        {"type": "bar", "x": dates, "y": vol, "name": "成交量", "yaxis": "y2", "showlegend": False,
          "marker": {"color": vol, "colorscale": [[0, "#1a237e"], [1, "#26a69a"]],
                     "showscale": False}, "opacity": 0.4},
     ]
@@ -84,7 +84,7 @@ def build_chart_json(intraday: list[dict], cur_data: dict, cur_ratio: dict) -> s
     for price, label, color in thresholds:
         data.append({
             "type": "scatter", "x": dates, "y": [price] * len(dates),
-            "name": label, "mode": "lines+markers",
+            "name": label, "mode": "lines+markers", "showlegend": False,
             "line": {"color": color, "dash": "dash", "width": 1},
             "marker": {"size": 5, "color": color, "symbol": "diamond"},
         })
