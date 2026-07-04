@@ -55,6 +55,7 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
 # ── 图表 ─────────────────────────────────────────
 DAYS_HISTORICAL = _env_int("DAYS_HISTORICAL", 60)
+PLOTLY_VERSION = os.getenv("PLOTLY_VERSION", "2.27.0")
 INTRADAY_INTERVAL = os.getenv("INTRADAY_INTERVAL", "15m")
 INTRADAY_PERIOD = os.getenv("INTRADAY_PERIOD", "5d")
 

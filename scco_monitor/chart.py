@@ -10,6 +10,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
+from typing import Any
 
 from .config import (
     ANCHOR_COPPER_BASE,
@@ -18,6 +19,7 @@ from .config import (
     GITHUB_REPOSITORY,
     INTRADAY_INTERVAL,
     PAGES_URL,
+    PLOTLY_VERSION,
     THRESHOLD_HOT,
     THRESHOLD_SAFE,
     THRESHOLD_WATCH,
@@ -32,7 +34,7 @@ def _load_template() -> str:
     return (_HERE / "template.html").read_text(encoding="utf-8")
 
 
-def build_chart_json(intraday, cur_data, cur_ratio) -> str:
+def build_chart_json(intraday: list[dict], cur_data: dict, cur_ratio: dict) -> str:
     """构建日内 15min 图表 (仅当日, 固定长度)."""
     if not intraday:
         return json.dumps({"data": [], "layout": {}, "config": {"responsive": True}},
@@ -51,13 +53,15 @@ def build_chart_json(intraday, cur_data, cur_ratio) -> str:
     p_safe, p_watch, p_hot = [], [], []
     for r in intraday:
         ref = float(r.get("copper_ref", cur_data["copper"]) or cur_data["copper"])
+        if ref == 0:
+            continue
         s = float(cur_data.get("shares", 773_000_000) or 773_000_000)
         anchor = ref / ANCHOR_COPPER_BASE * ANCHOR_MCAP_FACTOR * 1e8
         p_safe.append(round(THRESHOLD_SAFE * anchor / s, 2))
         p_watch.append(round(THRESHOLD_WATCH * anchor / s, 2))
         p_hot.append(round(THRESHOLD_HOT * anchor / s, 2))
 
-    data = [
+    data: list[dict[str, Any]] = [
         {"type": "candlestick", "x": dates, "open": opn, "high": high, "low": low,
          "close": close, "name": "SCCO",
          "increasing": {"line": {"color": "#26a69a"}, "fillcolor": "#26a69a"},
@@ -105,7 +109,7 @@ def build_chart_json(intraday, cur_data, cur_ratio) -> str:
                        ensure_ascii=False, default=str)
 
 
-def build_history_chart_json(daily) -> str:
+def build_history_chart_json(daily: list[dict]) -> str:
     """构建 60 日历史走势图 (铜价, SCCO 股价, 相关性系数)."""
     daily_slice = daily[-DAYS_HISTORICAL:] if len(daily) > DAYS_HISTORICAL else daily
     if len(daily_slice) < 2:
@@ -116,14 +120,14 @@ def build_history_chart_json(daily) -> str:
     scco = [float(r["scco_close"]) for r in daily_slice]
     ratio = [float(r.get("ratio", 0)) for r in daily_slice]
 
-    labels = ["CU", "SCCO", "Corr"]
+    labels = ["Cu", "SCCO", "Corr"]
     colors = ["#ffa726", "#58a6ff", "#26a69a"]
 
     data = [
-        {"type": "scatter", "x": dates, "y": copper, "name": "CU",
+        {"type": "scatter", "x": dates, "y": copper, "name": "Cu",
          "mode": "lines", "line": {"color": colors[0], "width": 2},
          "yaxis": "y", "xaxis": "x",
-         "hovertemplate": "%{x|%Y%m%d}<br>CU: $%{y:.4f}<extra></extra>"},
+         "hovertemplate": "%{x|%Y%m%d}<br>Cu: $%{y:.4f}<extra></extra>"},
         {"type": "scatter", "x": dates, "y": scco, "name": "SCCO",
          "mode": "lines", "line": {"color": colors[1], "width": 2},
          "yaxis": "y3", "xaxis": "x",
@@ -142,7 +146,7 @@ def build_history_chart_json(daily) -> str:
         "xaxis": {"domain": [0, 1], "showticklabels": False, "gridcolor": "#21262d", "zerolinecolor": "#21262d", "type": "date"},
         "xaxis2": {"domain": [0, 1], "matches": "x", "gridcolor": "#21262d", "zerolinecolor": "#21262d", "type": "date",
                    "tickformat": "%Y%m%d"},
-        "yaxis": {"title": {"text": "CU ($)", "font": {"color": "#ffa726", "size": 14}}, "side": "left",
+        "yaxis": {"title": {"text": "Cu ($)", "font": {"color": "#ffa726", "size": 14}}, "side": "left",
                   "gridcolor": "#21262d", "zerolinecolor": "#21262d", "automargin": True},
         "yaxis3": {"title": {"text": "SCCO ($)", "font": {"color": "#58a6ff", "size": 14}}, "side": "right",
                     "overlaying": "y", "gridcolor": "#21262d", "zerolinecolor": "#21262d", "automargin": True},
@@ -156,7 +160,7 @@ def build_history_chart_json(daily) -> str:
                        ensure_ascii=False, default=str)
 
 
-def build_html(daily, intraday, cur_data, cur_ratio) -> None:
+def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_ratio: dict) -> None:
     """生成完整 HTML."""
     from .config import DOCS_DIR, HTML_PATH
     Path(DOCS_DIR).mkdir(parents=True, exist_ok=True)
@@ -185,6 +189,7 @@ def build_html(daily, intraday, cur_data, cur_ratio) -> None:
         "intraday_interval": INTRADAY_INTERVAL,
         "days_historical": DAYS_HISTORICAL,
         "trade_date": trade_date_compact,
+        "plotly_version": PLOTLY_VERSION,
     }
     HTML_PATH.write_text(html, encoding="utf-8")
     print(f"  HTML 生成 (日内 {len(intraday)} 根 · 历史 {len(daily)} 日)")

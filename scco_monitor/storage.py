@@ -7,7 +7,7 @@
 import csv
 from pathlib import Path
 
-import scco_monitor.config as cfg
+from . import config as cfg
 
 FIELDS = [
     "date", "copper",

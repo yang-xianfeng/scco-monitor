@@ -14,21 +14,23 @@ from scco_monitor.storage import append_csv, read_csv
 
 
 def _backfill_history() -> list[dict]:
-    """回填 60 日历史数据到 CSV."""
+    """回填历史数据到 CSV，只 fetch 不足的部分."""
     rows = read_csv()
     if len(rows) >= DAYS_HISTORICAL:
         return rows
-    historical = fetch_daily_data()
+    needed = DAYS_HISTORICAL - len(rows)
+    period = f"{needed + 10}d" if needed < 60 else "3mo"
+    historical = fetch_daily_data(period=period)
     if not historical:
         return rows
-    print(f"  回填 {len(historical)} 日历史数据 ...")
+    print(f"  回填 {len(historical)} 日历史数据 (period={period}) ...")
     for h in historical:
         r = calculate_ratio(h)
         append_csv(h, r)
     return read_csv()
 
 
-def main():
+def main() -> None:
     now = datetime.now()
     print("=" * 42)
     print("  SCCO Monitor · 相关性系数")
@@ -53,7 +55,7 @@ def main():
     print(f"[5] CSV: {len(rows)} 行")
 
     build_html(rows, intro, data, ratio)
-    print(f"[6] HTML 已生成")
+    print("[6] HTML 已生成")
 
     report = (
         f"【SCCO Monitor】{now.strftime('%m-%d %H:%M')}\n"
