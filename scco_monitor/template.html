@@ -35,9 +35,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
 
 #chart{height:360px}
 #history-chart{height:400px}
-.footer{border-top:1px solid var(--border);padding:12px 0;display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
-.footer a{color:var(--sec);text-decoration:none}
-.footer a:hover{color:var(--accent)}
 @media(max-width:768px){
   .stats{flex-wrap:wrap;gap:8px}
   .stat{padding:16px 10px}
@@ -83,11 +80,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
   <div class="title">History · %(days_historical)dD</div>
   <div id="history-chart"></div>
 </div>
-
-<footer class="footer">
-  <div>Yahoo Finance · US Market</div>
-  <div><a href="%(github_url)s">GitHub</a> · <a href="%(pages_url)s">Pages</a></div>
-</footer>
 
 </div>
 
