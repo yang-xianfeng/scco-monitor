@@ -15,6 +15,7 @@ from .config import (
     ANCHOR_MCAP_FACTOR,
     DAYS_HISTORICAL,
     GITHUB_REPOSITORY,
+    INTRADAY_INTERVAL,
     PAGES_URL,
     THRESHOLD_HOT,
     THRESHOLD_SAFE,
@@ -171,6 +172,8 @@ def build_html(daily, intraday, cur_data, cur_ratio) -> None:
         "history_chart_json": history_chart_json,
         "github_url": f"https://github.com/{GITHUB_REPOSITORY}",
         "pages_url": PAGES_URL,
+        "intraday_interval": INTRADAY_INTERVAL,
+        "days_historical": DAYS_HISTORICAL,
     }
     HTML_PATH.write_text(html, encoding="utf-8")
     print(f"  HTML 生成 (日内 {len(intraday)} 根 · 历史 {len(daily)} 日)")

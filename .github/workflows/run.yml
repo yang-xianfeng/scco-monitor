@@ -1,9 +1,13 @@
 name: SCCO Monitor
 
 on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'data/**'
+      - 'docs/**'
   schedule:
-    - cron: '0 14 * * 1-5'
-    - cron: '30 20 * * 1-5'
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -33,6 +37,10 @@ jobs:
 
       - run: python main.py
         env:
+          SCHEDULE_INTERVAL_MINUTES: 15
+          DAYS_HISTORICAL: 60
+          INTRADAY_INTERVAL: 15m
+          INTRADAY_PERIOD: 5d
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -53,5 +61,5 @@ jobs:
         if: success()
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: "auto: update data & chart"
+          commit_message: "auto: update data & chart [skip ci]"
           file_pattern: data/ docs/

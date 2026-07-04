@@ -12,6 +12,14 @@ def _env_float(key: str, default: float) -> float:
     return float(val)
 
 
+def _env_int(key: str, default: int) -> int:
+    """读取环境变量并转为 int，空值/缺省时返回 default."""
+    val = os.getenv(key)
+    if val is None or val.strip() == "":
+        return default
+    return int(val)
+
+
 # ── 标的 ───────────────────────────────────────────
 COPPER_TICKER = "HG=F"
 SCCO_TICKER = "SCCO"
@@ -46,6 +54,9 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
 # ── 图表 ─────────────────────────────────────────
-DAYS_HISTORICAL = 60
-INTRADAY_INTERVAL = "15m"
-INTRADAY_PERIOD = "5d"
+DAYS_HISTORICAL = _env_int("DAYS_HISTORICAL", 60)
+INTRADAY_INTERVAL = os.getenv("INTRADAY_INTERVAL", "15m")
+INTRADAY_PERIOD = os.getenv("INTRADAY_PERIOD", "5d")
+
+# ── 调度 ─────────────────────────────────────────
+SCHEDULE_INTERVAL_MINUTES = _env_int("SCHEDULE_INTERVAL_MINUTES", 15)
