@@ -149,26 +149,25 @@ class TestBacktest:
 
 class TestHTML:
     def test_generates(self, tmp_workspace, sample_data, sample_ratio, sample_intraday):
-        build_html([], [], sample_data, sample_ratio, {})
+        build_html([], [], sample_data, sample_ratio)
         assert config.HTML_PATH.exists()
         html = config.HTML_PATH.read_text()
         assert "Plotly.react" in html
 
     def test_with_data(self, tmp_workspace, sample_data, sample_ratio, sample_intraday):
         row = {**sample_data, **sample_ratio}
-        build_html([row], sample_intraday, sample_data, sample_ratio, run_bt([]))
+        build_html([row], sample_intraday, sample_data, sample_ratio)
         html = config.HTML_PATH.read_text()
         assert "SCCO" in html and "相关性系数" in html
 
     def test_chart_json(self, sample_data, sample_ratio):
-        j = json.loads(build_chart_json([], [], {}, sample_data, sample_ratio))
+        j = json.loads(build_chart_json([], sample_data, sample_ratio))
         assert "data" in j and "layout" in j and "config" in j
 
-    def test_bt_chart(self, tmp_workspace, sample_data, sample_ratio):
-        bt = run_bt([{"date": "2026-01-01", "scco_close": "170", "ratio": "1.0"},
-                     {"date": "2026-01-02", "scco_close": "175", "ratio": "1.1"}])
-        build_html([], [], sample_data, sample_ratio, bt)
-        assert config.HTML_PATH.exists()
+    def test_history_chart_json(self, tmp_workspace, sample_data, sample_ratio):
+        from scco_monitor.chart import build_history_chart_json
+        j = json.loads(build_history_chart_json([]))
+        assert j is None or j == "null"
 
 
 # ── fetch_market_data ───────────────────────
