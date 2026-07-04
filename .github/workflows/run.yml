@@ -33,7 +33,9 @@ jobs:
 
       - run: python main.py
         env:
-          USER_COST: ${{ vars.USER_COST }}
+          THRESHOLD_SAFE: ${{ vars.THRESHOLD_SAFE }}
+          THRESHOLD_WATCH: ${{ vars.THRESHOLD_WATCH }}
+          THRESHOLD_HOT: ${{ vars.THRESHOLD_HOT }}
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
