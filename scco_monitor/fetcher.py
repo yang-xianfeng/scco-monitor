@@ -1,8 +1,3 @@
-"""数据采集 — Yahoo Finance 日线 & 日内 15min.
-
-非交易日: fetch_market_data() 返回 None, fetch_intraday_data() 返回 [].
-"""
-
 from datetime import datetime
 
 import pandas as pd
@@ -15,17 +10,14 @@ from .config import (
     INTRADAY_PERIOD,
     SCCO_TICKER,
 )
+from .models import IntradayBar, MarketData
 
 
 class FetchError(Exception):
     """数据采集失败 (网络 / yfinance 异常)."""
 
 
-def fetch_daily_data(period: str = "3mo") -> list[dict]:
-    """获取 SCCO + 铜期货 N 日日线 OHLCV.
-
-    shares 只 fetch 一次 (避免循环内重复调用 yfinance API).
-    """
+def fetch_daily_data(period: str = "3mo") -> list[MarketData]:
     copper = yf.Ticker(COPPER_TICKER).history(period=period)
     scco = yf.Ticker(SCCO_TICKER).history(period=period)
 
@@ -38,25 +30,21 @@ def fetch_daily_data(period: str = "3mo") -> list[dict]:
 
     shares = yf.Ticker(SCCO_TICKER).info.get("sharesOutstanding") or DEFAULT_SHARES
     return [
-        {
-            "date": dt.strftime("%Y-%m-%d"),
-            "copper": round(float(copper.loc[dt, "Close"]), 4),
-            "scco_open": round(float(scco.loc[dt, "Open"]), 2),
-            "scco_high": round(float(scco.loc[dt, "High"]), 2),
-            "scco_low": round(float(scco.loc[dt, "Low"]), 2),
-            "scco_close": round(float(scco.loc[dt, "Close"]), 2),
-            "scco_volume": int(scco.loc[dt, "Volume"]),
-            "shares": int(shares),
-        }
+        MarketData(
+            date=dt.strftime("%Y-%m-%d"),
+            copper=round(float(copper.loc[dt, "Close"]), 4),
+            scco_open=round(float(scco.loc[dt, "Open"]), 2),
+            scco_high=round(float(scco.loc[dt, "High"]), 2),
+            scco_low=round(float(scco.loc[dt, "Low"]), 2),
+            scco_close=round(float(scco.loc[dt, "Close"]), 2),
+            scco_volume=int(scco.loc[dt, "Volume"]),
+            shares=int(shares),
+        )
         for dt in idx
     ]
 
 
-def fetch_intraday_data() -> list[dict]:
-    """获取当日 SCCO 15min 日内 OHLCV + 铜价参考.
-
-    非交易日返回 [].
-    """
+def fetch_intraday_data() -> list[IntradayBar]:
     scco = yf.Ticker(SCCO_TICKER).history(period=INTRADAY_PERIOD, interval=INTRADAY_INTERVAL)
     copper = yf.Ticker(COPPER_TICKER).history(period=INTRADAY_PERIOD, interval=INTRADAY_INTERVAL)
 
@@ -68,25 +56,20 @@ def fetch_intraday_data() -> list[dict]:
     scco_today = scco[scco.index.date == last_date]
 
     return [
-        {
-            "datetime": idx.to_pydatetime().isoformat(),
-            "copper_ref": copper_ref,
-            "scco_open": round(float(row["Open"]), 2),
-            "scco_high": round(float(row["High"]), 2),
-            "scco_low": round(float(row["Low"]), 2),
-            "scco_close": round(float(row["Close"]), 2),
-            "scco_volume": int(row["Volume"]),
-        }
+        IntradayBar(
+            datetime=idx.to_pydatetime().isoformat(),
+            copper_ref=copper_ref,
+            scco_open=round(float(row["Open"]), 2),
+            scco_high=round(float(row["High"]), 2),
+            scco_low=round(float(row["Low"]), 2),
+            scco_close=round(float(row["Close"]), 2),
+            scco_volume=int(row["Volume"]),
+        )
         for idx, row in scco_today.iterrows()
     ]
 
 
-def fetch_market_data() -> dict | None:
-    """采集当日单日行情.
-
-    返回 dict (有数据) 或 None (非交易日/空数据).
-    网络错误等仍可能抛出 FetchError.
-    """
+def fetch_market_data() -> MarketData | None:
     copper_hist = yf.Ticker(COPPER_TICKER).history(period="1d")
     scco_hist = yf.Ticker(SCCO_TICKER).history(period="1d")
 
@@ -95,13 +78,13 @@ def fetch_market_data() -> dict | None:
 
     shares = yf.Ticker(SCCO_TICKER).info.get("sharesOutstanding") or DEFAULT_SHARES
 
-    return {
-        "date": copper_hist.index[-1].strftime("%Y-%m-%d"),
-        "copper": round(float(copper_hist["Close"].iloc[-1]), 4),
-        "scco_open": round(float(scco_hist["Open"].iloc[-1]), 2),
-        "scco_high": round(float(scco_hist["High"].iloc[-1]), 2),
-        "scco_low": round(float(scco_hist["Low"].iloc[-1]), 2),
-        "scco_close": round(float(scco_hist["Close"].iloc[-1]), 2),
-        "scco_volume": int(scco_hist["Volume"].iloc[-1]),
-        "shares": int(shares),
-    }
+    return MarketData(
+        date=copper_hist.index[-1].strftime("%Y-%m-%d"),
+        copper=round(float(copper_hist["Close"].iloc[-1]), 4),
+        scco_open=round(float(scco_hist["Open"].iloc[-1]), 2),
+        scco_high=round(float(scco_hist["High"].iloc[-1]), 2),
+        scco_low=round(float(scco_hist["Low"].iloc[-1]), 2),
+        scco_close=round(float(scco_hist["Close"].iloc[-1]), 2),
+        scco_volume=int(scco_hist["Volume"].iloc[-1]),
+        shares=int(shares),
+    )

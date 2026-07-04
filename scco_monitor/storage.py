@@ -1,32 +1,39 @@
-"""数据持久化 — CSV 读写.
-
-日线: 同日期 upsert (覆盖 + 排序).
-日内: 追加写入.
-"""
-
 from csv import DictReader, DictWriter
 from pathlib import Path
 
 from . import config as cfg
+from .models import IntradayBar, MarketData, RatioResult
 
-FIELDS = [
-    "date", "copper",
-    "scco_open", "scco_high", "scco_low", "scco_close", "scco_volume",
-    "ratio", "p_safe", "p_watch", "p_hot",
-]
-INTRADAY_FIELDS = [
-    "datetime", "copper_ref",
-    "scco_open", "scco_high", "scco_low", "scco_close", "scco_volume",
-    "ratio",
-]
+FIELDS = ["date", "copper",
+          "scco_open", "scco_high", "scco_low", "scco_close", "scco_volume",
+          "ratio", "p_safe", "p_watch", "p_hot"]
+INTRADAY_FIELDS = ["datetime", "copper_ref",
+                   "scco_open", "scco_high", "scco_low", "scco_close", "scco_volume",
+                   "ratio"]
+
+
+_NUMERIC_KEYS = {"copper", "scco_open", "scco_high", "scco_low", "scco_close", "scco_volume", "shares"}
 
 
 def _ensure_dir(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
 
+def row_to_numeric(row: dict) -> dict:
+    """将 CSV 读出的字符串 dict 转为数值类型."""
+    out = dict(row)
+    for k in _NUMERIC_KEYS:
+        if k in out:
+            try:
+                out[k] = float(out[k])
+            except (ValueError, TypeError):
+                pass
+    if "shares" in out:
+        out["shares"] = int(out["shares"])
+    return out
+
+
 def _upsert_rows(existing: list[dict], new_row: dict) -> list[dict]:
-    """合并新行 (同日期覆盖), 按日期排序."""
     out = [new_row if r["date"] == new_row["date"] else r for r in existing]
     if not any(r["date"] == new_row["date"] for r in existing):
         out.append(new_row)
@@ -34,8 +41,7 @@ def _upsert_rows(existing: list[dict], new_row: dict) -> list[dict]:
     return out
 
 
-def append_csv(data: dict, ratio_result: dict) -> None:
-    """写入日线数据 (同日期覆盖)."""
+def append_csv(data: MarketData, ratio_result: RatioResult) -> None:
     _ensure_dir(cfg.CSV_PATH)
     merged = {**data, **ratio_result}
     new_row = {k: str(merged[k]) for k in FIELDS}
@@ -54,15 +60,14 @@ def append_csv(data: dict, ratio_result: dict) -> None:
         w.writerows(_upsert_rows(existing, new_row))
 
 
-def read_csv() -> list[dict]:
+def read_csv() -> list[MarketData]:
     if not cfg.CSV_PATH.exists():
         return []
     with open(cfg.CSV_PATH) as f:
         return list(DictReader(f))
 
 
-def append_intraday_csv(rows: list[dict], ratio: float) -> None:
-    """追加写入日内数据."""
+def append_intraday_csv(rows: list[IntradayBar], ratio: float) -> None:
     _ensure_dir(cfg.CSV_INTRADAY_PATH)
     write_header = not cfg.CSV_INTRADAY_PATH.exists()
     with open(cfg.CSV_INTRADAY_PATH, "a", newline="") as f:

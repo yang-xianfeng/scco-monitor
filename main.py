@@ -1,9 +1,3 @@
-"""SCCO Monitor · 相关性系数 — 主入口.
-
-流程: 回填历史 → 采集 → 计算 → 存储 → 图表 → 通知
-非交易日自动兜底, 使用最后已知数据生成报告.
-"""
-
 from datetime import datetime
 
 from scco_monitor.chart import build_html
@@ -11,13 +5,10 @@ from scco_monitor.config import DAYS_HISTORICAL, PAGES_URL
 from scco_monitor.core import calculate_ratio, get_signal
 from scco_monitor.fetcher import fetch_daily_data, fetch_intraday_data, fetch_market_data
 from scco_monitor.notifier import push
-from scco_monitor.storage import append_csv, read_csv
-
-_NUMERIC_KEYS = {"copper", "scco_open", "scco_high", "scco_low", "scco_close", "scco_volume", "shares"}
+from scco_monitor.storage import append_csv, read_csv, row_to_numeric
 
 
 def _backfill_history() -> list[dict]:
-    """回填历史数据到 CSV，只 fetch 不足的部分."""
     rows = read_csv()
     if len(rows) >= DAYS_HISTORICAL:
         return rows
@@ -31,20 +22,6 @@ def _backfill_history() -> list[dict]:
         r = calculate_ratio(h)
         append_csv(h, r)
     return read_csv()
-
-
-def _row_to_numeric(row: dict) -> dict:
-    """将 CSV 读出的字符串 dict 转为数值类型, 供 calculate_ratio / build_html 使用."""
-    out = dict(row)
-    for k in _NUMERIC_KEYS:
-        if k in out:
-            try:
-                out[k] = float(out[k])
-            except (ValueError, TypeError):
-                pass
-    if "shares" in out:
-        out["shares"] = int(out["shares"])
-    return out
 
 
 def main() -> None:
@@ -67,7 +44,7 @@ def main() -> None:
             print("[2] 无可用的市场数据 (首次运行且非交易日)")
             print("=" * 42)
             return
-        cur_data = _row_to_numeric(rows[-1])
+        cur_data = row_to_numeric(rows[-1])
         print(f"[2] 非交易日, 使用最后已知数据: 铜 ${cur_data['copper']}  |  SCCO ${cur_data['scco_close']}")
 
     intro = fetch_intraday_data() if is_fresh else []

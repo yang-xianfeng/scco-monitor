@@ -8,11 +8,12 @@ import pytest
 
 from scco_monitor import chart as scco_chart
 from scco_monitor import config
-from scco_monitor.backtest import run as run_bt
 from scco_monitor.chart import build_chart_json, build_history_chart_json, build_html
 from scco_monitor.core import calculate_ratio, get_signal
 from scco_monitor.fetcher import FetchError, fetch_market_data
+from scco_monitor.models import Signal
 from scco_monitor.storage import append_csv, append_intraday_csv, read_csv, read_intraday_csv
+from scco_monitor.zone import scan_transitions as run_bt
 
 
 @pytest.fixture

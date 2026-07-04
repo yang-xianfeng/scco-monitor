@@ -28,6 +28,7 @@ from .config import (
     TIMEZONE,
 )
 from .core import get_signal
+from .models import Signal
 
 _HERE = Path(__file__).parent
 _ET = ZoneInfo(TIMEZONE)
@@ -189,6 +190,7 @@ def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_rati
     DOCS_DIR.mkdir(parents=True, exist_ok=True)
 
     sig_key, sig_tag = get_signal(cur_ratio["ratio"])
+    sig_key = sig_key.value
     now = datetime.now(_ET)
 
     chart_json = build_chart_json(intraday, cur_data, cur_ratio)
