@@ -163,13 +163,22 @@ def build_history_chart_json(daily: list[dict]) -> str:
                        ensure_ascii=False, default=str)
 
 
-def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_ratio: dict) -> None:
-    """生成完整 HTML.
+def _get_display_date(intraday: list[dict], cur_data: dict, daily: list[dict]) -> str:
+    """确定标题栏显示的交易日日期.
     
-    日期规则: 优先用 intraday[-1]["datetime"] (日内数据来源日期,
-    反映实际交易日), 次选 cur_data["date"] (当前 fetch 从 yfinance
-    索引获取), 不可用 daily[-1]["date"] (CSV 可能有陈旧条目).
+    优先级: intraday 数据来源日期 > fetch 市场数据日期 > CSV 最后日期.
     """
+    if intraday:
+        return intraday[-1]["datetime"][:10]
+    if cur_data.get("date"):
+        return cur_data["date"]
+    if daily:
+        return daily[-1]["date"]
+    return datetime.now(_ET).strftime("%Y-%m-%d")
+
+
+def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_ratio: dict) -> None:
+    """生成完整 HTML."""
     from .config import DOCS_DIR, HTML_PATH
     Path(DOCS_DIR).mkdir(parents=True, exist_ok=True)
 
@@ -179,15 +188,7 @@ def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_rati
     chart_json = build_chart_json(intraday, cur_data, cur_ratio)
     history_chart_json = build_history_chart_json(daily)
 
-    if intraday:
-        trade_date = intraday[-1]["datetime"][:10]
-    elif cur_data.get("date"):
-        trade_date = cur_data["date"]
-    elif daily:
-        trade_date = daily[-1]["date"]
-    else:
-        trade_date = now.strftime("%Y-%m-%d")
-    trade_date_compact = trade_date.replace("-", "")
+    trade_date_compact = _get_display_date(intraday, cur_data, daily).replace("-", "")
 
     template = _load_template()
     html = template % {
@@ -204,7 +205,6 @@ def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_rati
         "intraday_interval": INTRADAY_INTERVAL,
         "days_historical": DAYS_HISTORICAL,
         "trade_date": trade_date_compact,
-        "non_trading": "",
         "plotly_version": PLOTLY_VERSION,
     }
     HTML_PATH.write_text(html, encoding="utf-8")
