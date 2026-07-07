@@ -32,6 +32,7 @@ from .models import Signal
 
 _HERE = Path(__file__).parent
 _ET = ZoneInfo(TIMEZONE)
+_BJ = ZoneInfo("Asia/Shanghai")
 
 
 def _load_template() -> str:
@@ -171,17 +172,19 @@ def build_history_chart_json(daily: list[dict]) -> str:
                        ensure_ascii=False, default=str)
 
 
-def _get_display_date(intraday: list[dict], cur_data: dict, daily: list[dict]) -> str:
-    """确定标题栏显示的交易日日期.
+def _get_display_label(intraday: list[dict], cur_data: dict, daily: list[dict]) -> str:
+    """确定 15min K 线图左上角的显示标签.
 
-    优先级: intraday 数据来源日期 > fetch 市场数据日期 > CSV 最后日期.
+    有 intraday: 取最后一条 K 线时间 (ET), 格式 "YYYYmmDD HH:MM"
+    无 intraday: 仅日期.
     """
     if intraday:
-        return intraday[-1]["datetime"][:10]
+        dt = datetime.fromisoformat(intraday[-1]["datetime"])
+        return dt.strftime("%Y%m%d %H:%M")
     if cur_data.get("date"):
-        return str(cur_data["date"])
+        return str(cur_data["date"]).replace("-", "")
     if daily:
-        return str(daily[-1]["date"])
+        return str(daily[-1]["date"]).replace("-", "")
     return datetime.now(_ET).strftime("%Y-%m-%d")
 
 
@@ -191,15 +194,17 @@ def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_rati
 
     sig_key, sig_tag = get_signal(cur_ratio["ratio"])
     sig_key = sig_key.value
-    now = datetime.now(_ET)
+    now_et = datetime.now(_ET)
+    now_bj = datetime.now(_BJ)
 
     chart_json = build_chart_json(intraday, cur_data, cur_ratio)
     history_chart_json = build_history_chart_json(daily)
-    trade_date_compact = _get_display_date(intraday, cur_data, daily).replace("-", "")
+    trade_label = _get_display_label(intraday, cur_data, daily)
 
     template = _load_template()
     html = template % {
-        "updated": now.strftime("%Y-%m-%d %H:%M"),
+        "updated": f"{now_et.strftime('%Y-%m-%d %H:%M')} ET / "
+                   f"{now_bj.strftime('%Y-%m-%d %H:%M')} 北京时间",
         "sig_key": sig_key,
         "sig_tag": sig_tag,
         "ratio": cur_ratio["ratio"],
@@ -209,7 +214,7 @@ def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_rati
         "history_chart_json": history_chart_json,
         "intraday_interval": INTRADAY_INTERVAL,
         "days_historical": DAYS_HISTORICAL,
-        "trade_date": trade_date_compact,
+        "trade_label": trade_label,
         "plotly_version": PLOTLY_VERSION,
     }
     HTML_PATH.write_text(html, encoding="utf-8")
