@@ -28,7 +28,6 @@ from .config import (
     TIMEZONE,
 )
 from .core import get_signal
-from .models import Signal
 
 _HERE = Path(__file__).parent
 _ET = ZoneInfo(TIMEZONE)
