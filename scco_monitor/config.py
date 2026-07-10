@@ -56,6 +56,7 @@ HTTP_TIMEOUT = _env_int("HTTP_TIMEOUT", 10)
 
 # ── 时区 ─────────────────────────────────────────
 TIMEZONE = os.getenv("TIMEZONE", "America/New_York")
+TIMEZONE_ASIA = os.getenv("TIMEZONE_ASIA", "Asia/Shanghai")
 
 # ── 图表 ─────────────────────────────────────────
 DAYS_HISTORICAL = _env_int("DAYS_HISTORICAL", 60)

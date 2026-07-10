@@ -76,7 +76,7 @@ def fetch_market_data() -> MarketData | None:
     shares = yf.Ticker(SCCO_TICKER).info.get("sharesOutstanding") or DEFAULT_SHARES
 
     return MarketData(
-        date=copper_hist.index[-1].strftime("%Y-%m-%d"),
+        date=scco_hist.index[-1].strftime("%Y-%m-%d"),
         copper=round(float(copper_hist["Close"].iloc[-1]), 4),
         scco_open=round(float(scco_hist["Open"].iloc[-1]), 2),
         scco_high=round(float(scco_hist["High"].iloc[-1]), 2),

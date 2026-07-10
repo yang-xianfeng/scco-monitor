@@ -1,11 +1,18 @@
 from datetime import datetime
 
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
 from scco_monitor.chart import build_html
-from scco_monitor.config import DAYS_HISTORICAL, PAGES_URL
+from scco_monitor.config import DAYS_HISTORICAL, PAGES_URL, TIMEZONE
 from scco_monitor.core import calculate_ratio, get_signal
 from scco_monitor.fetcher import fetch_daily_data, fetch_intraday_data, fetch_market_data
 from scco_monitor.notifier import push
 from scco_monitor.storage import append_csv, read_csv, row_to_numeric
+
+_ET = ZoneInfo(TIMEZONE)
 
 
 def _backfill_history() -> list[dict]:
@@ -25,7 +32,7 @@ def _backfill_history() -> list[dict]:
 
 
 def main() -> None:
-    now = datetime.now()
+    now = datetime.now(_ET)
     print("=" * 42)
     print("  SCCO Monitor · 相关性系数")
     print(f"  {now.strftime('%Y-%m-%d %H:%M:%S')}")

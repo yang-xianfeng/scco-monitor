@@ -9,8 +9,12 @@ Plotly 深色主题:
 import json
 from datetime import datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 from typing import Any
+
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 from .config import (
     ANCHOR_COPPER_BASE,
@@ -26,12 +30,13 @@ from .config import (
     THRESHOLD_SAFE,
     THRESHOLD_WATCH,
     TIMEZONE,
+    TIMEZONE_ASIA,
 )
 from .core import get_signal
 
 _HERE = Path(__file__).parent
 _ET = ZoneInfo(TIMEZONE)
-_BJ = ZoneInfo("Asia/Shanghai")
+_BJ = ZoneInfo(TIMEZONE_ASIA)
 
 
 def _load_template() -> str:
@@ -98,7 +103,8 @@ def build_chart_json(intraday: list[dict], cur_data: dict, cur_ratio: dict) -> s
         "margin": {"l": 4, "r": 4, "t": 28, "b": 28},
         "xaxis": {"domain": [0, 1], "gridcolor": "#21262d", "zerolinecolor": "#21262d",
                   "type": "date", "rangeslider": {"visible": False},
-                  "tickformat": "%H:%M", "hoverformat": "%Y/%m/%d %H:%M"},
+                  "tickformat": "%H:%M", "hoverformat": "%Y/%m/%d %H:%M",
+                  "timezone": TIMEZONE},
         "yaxis": {"domain": [0.25, 1], "gridcolor": "#21262d", "zerolinecolor": "#21262d",
                   "title": "", "side": "right", "automargin": True},
         "yaxis2": {"domain": [0, 0.2], "gridcolor": "#21262d", "zerolinecolor": "#21262d",

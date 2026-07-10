@@ -44,9 +44,11 @@ main.py → fetcher(yfinance) → core(计算) → chart(Plotly) → docs/index.
 | `data/intraday.csv` | 日内 15min K 线 | 追加 |
 | `docs/index.html` | Plotly 面板（GitHub Pages） | 每次重新生成 |
 
-## 本地运行
+## 本地运行（必须使用虚拟环境）
 
 ```bash
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 python main.py
 python -m pytest tests/ -v
