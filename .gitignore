@@ -11,3 +11,4 @@ build/
 # AGENTS.md 需纳入版本控制，供 AI 助手读取项目知识
 # 如需本地覆盖请用 AGENTS.local.md
 # AGENTS.md
+data/.generated

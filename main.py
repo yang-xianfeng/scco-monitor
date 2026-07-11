@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 try:
@@ -78,6 +79,7 @@ def main() -> None:
     print(f"[5] CSV: {len(rows)} 行")
 
     build_html(rows, intro, cur_data, ratio, buffer_label=buffer_label)
+    Path("data/.generated").touch()
     print("[6] HTML 已生成")
 
     tag = " [Offline]" if not is_fresh else ""
