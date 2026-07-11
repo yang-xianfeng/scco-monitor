@@ -193,7 +193,8 @@ def _get_display_label(intraday: list[dict], cur_data: dict, daily: list[dict]) 
     return datetime.now(_ET).strftime("%Y-%m-%d")
 
 
-def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_ratio: dict) -> None:
+def build_html(daily: list[dict], intraday: list[dict], cur_data: dict,
+               cur_ratio: dict, buffer_label: str = "") -> None:
     """生成完整 HTML."""
     DOCS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -207,9 +208,10 @@ def build_html(daily: list[dict], intraday: list[dict], cur_data: dict, cur_rati
     trade_label = _get_display_label(intraday, cur_data, daily)
 
     template = _load_template()
+    updated = f"{now_et.strftime('%Y-%m-%d %H:%M')} ET {buffer_label}" \
+              f" / {now_bj.strftime('%Y-%m-%d %H:%M')} 北京时间"
     html = template % {
-        "updated": f"{now_et.strftime('%Y-%m-%d %H:%M')} ET / "
-                   f"{now_bj.strftime('%Y-%m-%d %H:%M')} 北京时间",
+        "updated": updated,
         "sig_key": sig_key,
         "sig_tag": sig_tag,
         "ratio": cur_ratio["ratio"],

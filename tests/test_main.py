@@ -1,7 +1,9 @@
 """SCCO Monitor · 相关性系数 — 完整测试."""
 
 import json
+from datetime import datetime
 from unittest.mock import MagicMock, patch
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import pytest
@@ -12,6 +14,7 @@ from scco_monitor.chart import build_chart_json, build_history_chart_json, build
 from scco_monitor.core import calculate_ratio, get_signal
 from scco_monitor.fetcher import FetchError, fetch_market_data
 from scco_monitor.models import Signal
+from scco_monitor.scheduler import BUFFER_MINUTES, check_schedule
 from scco_monitor.storage import append_csv, append_intraday_csv, read_csv, read_intraday_csv
 from scco_monitor.zone import scan_transitions as run_bt
 
@@ -191,6 +194,71 @@ class TestHTML:
         with patch.object(config, "DAYS_HISTORICAL", 60):
             j = json.loads(build_history_chart_json([row, row]))
         assert isinstance(j, dict)
+
+
+# ── 调度器 ────────────────────────────────────
+
+class TestScheduler:
+    def _et(self, h, m, dow=0):
+        """创建 ET 时区的 datetime. dow: 0=Mon ... 6=Sun."""
+        from datetime import timedelta
+        base = datetime(2026, 7, 6) + timedelta(days=dow)  # 2026-07-06 = Mon
+        return base.replace(hour=h, minute=m, tzinfo=ZoneInfo("America/New_York"))
+
+    # ── 精确匹配 ──
+
+    @pytest.mark.parametrize("h,m", [
+        (9, 0), (9, 5), (9, 10), (9, 15), (9, 20), (9, 25),  # 开盘前
+        (9, 30), (9, 55), (10, 0), # 密集 I
+        (11, 30),                   # 密集 I 结尾
+        (11, 45), (12, 0), (12, 30), # 15min 过渡
+        (12, 45), (13, 0),          # 密集 II 开始
+        (15, 55), (16, 0),          # 密集 II 结尾
+    ])
+    def test_exact_match(self, h, m):
+        assert check_schedule(self._et(h, m)).should_run
+
+    @pytest.mark.parametrize("h,m", [
+        (8, 0), (8, 30), (17, 0), (18, 0),  # 盘前盘后
+        (11, 35), (11, 40),                  # 11:30-11:45 gap
+        (12, 35), (12, 40),                  # 12:30-12:45 gap
+    ])
+    def test_no_match_wrong_time(self, h, m):
+        assert not check_schedule(self._et(h, m)).should_run
+
+    def test_weekend(self):
+        assert not check_schedule(self._et(10, 0, dow=6)).should_run  # Sun
+        assert not check_schedule(self._et(10, 0, dow=5)).should_run  # Sat
+
+    # ── buffer 窗口 ──
+
+    @pytest.mark.parametrize("h,m,offset", [
+        (8, 57, -3), (8, 58, -2), (9, 1, 1),  # 9:00 slot
+        (9, 12, -3), (9, 16, 1),               # 9:15 slot
+        (9, 27, -3), (9, 31, 1),               # 9:30 slot
+        (15, 57, -3), (16, 1, 1),              # 16:00 slot
+    ])
+    def test_buffer_window(self, h, m, offset):
+        sr = check_schedule(self._et(h, m))
+        assert sr.should_run
+        assert sr.offset_min == offset
+
+    def test_outside_buffer(self):
+        assert not check_schedule(self._et(8, 56)).should_run   # 9:00 - 4min
+        assert not check_schedule(self._et(16, 2)).should_run   # 16:00 + 2min
+
+    # ── buffer_label ──
+
+    @pytest.mark.parametrize("h,m,expected", [
+        (8, 57, "（较目标 09:00 提前 3 分钟）"),
+        (9, 0, ""),
+        (9, 26, ""),  # 9:25 + 1min → 不提前
+    ])
+    def test_buffer_label(self, h, m, expected):
+        assert check_schedule(self._et(h, m)).buffer_label == expected
+
+    def test_no_match_label_empty(self):
+        assert check_schedule(self._et(8, 0)).buffer_label == ""
 
 
 # ── fetch_market_data ───────────────────────

@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 try:
     from zoneinfo import ZoneInfo
@@ -10,6 +11,7 @@ from scco_monitor.config import DAYS_HISTORICAL, PAGES_URL, TIMEZONE
 from scco_monitor.core import calculate_ratio, get_signal
 from scco_monitor.fetcher import fetch_daily_data, fetch_intraday_data, fetch_market_data
 from scco_monitor.notifier import push
+from scco_monitor.scheduler import check_schedule
 from scco_monitor.storage import append_csv, read_csv, row_to_numeric
 
 _ET = ZoneInfo(TIMEZONE)
@@ -32,11 +34,20 @@ def _backfill_history() -> list[dict]:
 
 
 def main() -> None:
-    now = datetime.now(_ET)
+    now = datetime.now()
+    now_et = datetime.now(_ET)
     print("=" * 42)
     print("  SCCO Monitor · 相关性系数")
     print(f"  {now.strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 42)
+
+    sr = check_schedule()
+    if not sr.should_run:
+        print(f"  当前 ET {now_et.strftime('%H:%M')} 不在调度窗口内，跳过")
+        print("=" * 42)
+        return
+    buffer_label = sr.buffer_label
+    print(f"  调度匹配: ET {now_et.strftime('%H:%M')} {buffer_label}")
 
     rows = _backfill_history()
     print(f"\n[1] 历史数据: {len(rows)} 日")
@@ -66,7 +77,7 @@ def main() -> None:
         rows = read_csv()
     print(f"[5] CSV: {len(rows)} 行")
 
-    build_html(rows, intro, cur_data, ratio)
+    build_html(rows, intro, cur_data, ratio, buffer_label=buffer_label)
     print("[6] HTML 已生成")
 
     tag = " [Offline]" if not is_fresh else ""
