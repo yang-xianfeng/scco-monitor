@@ -36,6 +36,56 @@ _SCHEDULE_ET: list[tuple[int, int]] = [
 # 预计算为分钟数，加速检查
 _SLOTS_MINUTES = [h * 60 + m for h, m in _SCHEDULE_ET]
 
+# NYSE 市场假日（2024-2026）
+# 参考: https://www.nyse.com/markets/hours-calendars
+_NYSE_HOLIDAYS = {
+    # 2024
+    (1, 1),   # New Year's Day (Monday)
+    (1, 15),  # MLK Jr. Day
+    (2, 19),  # Presidents' Day
+    (3, 29),  # Good Friday
+    (5, 27),  # Memorial Day
+    (6, 19),  # Juneteenth
+    (7, 4),   # Independence Day
+    (9, 2),   # Labor Day
+    (11, 28), # Thanksgiving
+    (12, 25), # Christmas
+    # 2025
+    (1, 1),   # New Year's Day (Wednesday)
+    (1, 20),  # MLK Jr. Day
+    (2, 17),  # Presidents' Day
+    (4, 18),  # Good Friday
+    (5, 26),  # Memorial Day
+    (6, 19),  # Juneteenth
+    (7, 4),   # Independence Day
+    (9, 1),   # Labor Day
+    (11, 27), # Thanksgiving
+    (12, 25), # Christmas
+    # 2026
+    (1, 1),   # New Year's Day (Thursday)
+    (1, 19),  # MLK Jr. Day
+    (2, 16),  # Presidents' Day
+    (4, 3),   # Good Friday
+    (5, 25),  # Memorial Day
+    (6, 19),  # Juneteenth
+    (7, 4),   # Independence Day (Saturday -> market closed Friday 7/3)
+    (9, 7),   # Labor Day
+    (11, 26), # Thanksgiving
+    (12, 25), # Christmas
+}
+
+def _is_nyse_holiday(dt: datetime) -> bool:
+    """检查是否为 NYSE 非交易日（假日或周末）."""
+    # 周末直接返回 True
+    if dt.weekday() >= 5:  # Sat=5, Sun=6
+        return True
+    
+    # 检查假日列表
+    if (dt.month, dt.day) in _NYSE_HOLIDAYS:
+        return True
+    
+    return False
+
 
 @dataclass
 class ScheduleResult:
@@ -55,12 +105,16 @@ class ScheduleResult:
 def check_schedule(dt: datetime | None = None) -> ScheduleResult:
     """检查 *dt*（默认当前时间，ET）是否在任一调度窗口 [slot-BUFFER, slot+1min] 内.
 
-    仅在美国工作日 Mon-Fri 匹配调度窗口；周末直接返回不应执行.
+    仅在美国交易日 Mon-Fri（非假日）匹配调度窗口；非交易日直接返回不应执行.
+    自动处理 EDT/EST 时区转换（ZoneInfo）.
     """
     if dt is None:
         dt = datetime.now(_ET)
-    if dt.weekday() >= 5:  # Sat=5, Sun=6
+    
+    # 检查是否为 NYSE 非交易日
+    if _is_nyse_holiday(dt):
         return ScheduleResult(should_run=False, matched_slot=None, offset_min=0)
+    
     total = dt.hour * 60 + dt.minute
 
     for slot_h, slot_m, slot_total in zip(
