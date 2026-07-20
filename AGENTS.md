@@ -57,13 +57,19 @@ build_html(daily, intraday, cur_data, ratio)
 
 ### Date / Time
 - `fetch_market_data()`: 用 `copper_hist.index[-1]`（yfinance 数据日期），非 `datetime.now()`
-- `build_html()`: header 显示双时区 `{ET} ET / {北京时间} 北京时间`；K 线 badge 显示最后一条 bar 的 ET 时间
+- `build_html()`: header 显示 `数据 {slot} ET · 更新 {deploy} ET / {北京时间} 北京时间`；K 线 badge 显示最后一条 bar 的 ET 时间
 - `_get_display_label()`: 有 intraday 时解析 `intraday[-1]["datetime"]`；无 intraday 时回退 `cur_data["date"]` → `daily[-1]["date"]` → `datetime.now()`
 
 ### Non-trading Day
 - `fetch_market_data()` 返回 `None` → `main.py` 用最后 CSV 行，不写新数据
 - 通知标记 `[Offline]`
 - 首次运行且非交易日 → 直接退出，无空报告
+
+### Schedule (scheduler.py)
+- **精确匹配**：`total == slot_total`，无 ± 偏差
+- 仅允许 GitHub Actions 启动延迟，由重试循环覆盖
+- 交易日 Mon-Fri 09:30-16:00 ET
+- 首个槽位 09:00 ET，全部槽位见 `scheduler.py`
 
 ### Git SOP（每次功能修改后必须执行）
 
@@ -78,10 +84,10 @@ git add -A && git commit -m "scope: concise description" && git pull --rebase &&
 ## Workflow (.github/workflows/run.yml)
 
 - **cron 永远 UTC**，与 GitHub 账号地区无关
-- 美股交易日 Mon-Fri 9:30-16:00 ET，分 4 段调度覆盖
-- **Retry**: `python main.py` 失败自动重试 3 次（bash 循环）
-- **Cleanup**: 每次运行后保留最近 5 条 workflow runs
-- **Auto-commit**: 成功后将 `data/` `docs/` 自动推送回仓库（`[skip ci]`）
+- 美股交易日 Mon-Fri 9:30-16:00 ET，由 `scheduler.py` 精确控制
+- **Retry**: `main.py` 在单次 trigger 内重试 30 次 × 2s，默认 `.generated` 为止
+- **Deploy**: `data/` `docs/` 直接 `commit` → GitHub Pages 自动构建（无 deploy-pages 步骤）
+- **Cleanup**: 每次运行后保留最近 50 条 workflow runs
 
 ### ET → 北京时间换算（以 EDT 夏令时为例）
 

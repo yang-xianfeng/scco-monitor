@@ -194,22 +194,30 @@ def _get_display_label(intraday: list[dict], cur_data: dict, daily: list[dict]) 
 
 
 def build_html(daily: list[dict], intraday: list[dict], cur_data: dict,
-               cur_ratio: dict, buffer_label: str = "") -> None:
+               cur_ratio: dict, matched_slot: tuple[int, int] | None = None) -> None:
     """生成完整 HTML."""
     DOCS_DIR.mkdir(parents=True, exist_ok=True)
 
     sig_key, sig_tag = get_signal(cur_ratio["ratio"])
     sig_key = sig_key.value
     now_et = datetime.now(_ET)
-    now_bj = datetime.now(_BJ)
 
     chart_json = build_chart_json(intraday, cur_data, cur_ratio)
     history_chart_json = build_history_chart_json(daily)
     trade_label = _get_display_label(intraday, cur_data, daily)
 
     template = _load_template()
-    updated = f"{now_et.strftime('%Y-%m-%d %H:%M')} ET {buffer_label}" \
-              f" / {now_bj.strftime('%Y-%m-%d %H:%M')} 北京时间"
+    if matched_slot:
+        h, m = matched_slot
+        slot_et = now_et.replace(hour=h, minute=m, second=0, microsecond=0)
+        bj = slot_et.astimezone(_BJ)
+        updated = (f"{slot_et.strftime('%Y-%m-%d')}"
+                   f" 数据 {slot_et.strftime('%H:%M')} ET"
+                   f" · 更新 {now_et.strftime('%H:%M')} ET"
+                   f" / {bj.strftime('%H:%M')} 北京时间")
+    else:
+        now_bj = datetime.now(_BJ)
+        updated = f"{now_et.strftime('%Y-%m-%d %H:%M')} ET / {now_bj.strftime('%Y-%m-%d %H:%M')} 北京时间"
     html = template % {
         "updated": updated,
         "sig_key": sig_key,

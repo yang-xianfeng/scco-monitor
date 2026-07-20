@@ -47,8 +47,6 @@ def main() -> None:
         print(f"  当前 ET {now_et.strftime('%H:%M')} 不在调度窗口内，跳过")
         print("=" * 42)
         return
-    buffer_label = sr.buffer_label
-    print(f"  调度匹配: ET {now_et.strftime('%H:%M')} {buffer_label}")
 
     rows = _backfill_history()
     print(f"\n[1] 历史数据: {len(rows)} 日")
@@ -78,7 +76,7 @@ def main() -> None:
         rows = read_csv()
     print(f"[5] CSV: {len(rows)} 行")
 
-    build_html(rows, intro, cur_data, ratio, buffer_label=buffer_label)
+    build_html(rows, intro, cur_data, ratio, matched_slot=sr.matched_slot)
     Path("data/.generated").touch()
     print("[6] HTML 已生成")
 
